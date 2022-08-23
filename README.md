@@ -1,5 +1,16 @@
 ![Supported Python versions](https://img.shields.io/badge/python-3.7+-blue.svg) [![Twitter](https://img.shields.io/twitter/follow/byt3bl33d3r?label=byt3bl33d3r&style=social)](https://twitter.com/intent/follow?screen_name=byt3bl33d3r) [![Twitter](https://img.shields.io/twitter/follow/mpgn_x64?label=mpgn_x64&style=social)](https://twitter.com/intent/follow?screen_name=mpgn_x64)
 
+:exclamation: **Changes in this branch:**
+
+```
+  ...(snip)...
+  --dotnetassembly      execute a .NET assembly treating the first part of the command as the assembly name
+  --dotnetassembly-names DOTNETASSEMBLY_NAMES
+                        a comma-separated string of Namespace,Class,Method to execute
+  --dotnetassembly-arg-type {string,array}
+                        pass the arguments as an array or as a string
+```
+
 :triangular_flag_on_post: This is the public repository of CrackMapExec, for latest version and updates please consider supporting us through https://porchetta.industries/
 
 # CrackMapExec

