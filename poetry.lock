@@ -169,6 +169,17 @@ html5lib = ["html5lib"]
 lxml = ["lxml"]
 
 [[package]]
+name = "binaryornot"
+version = "0.4.4"
+description = "Ultra-lightweight pure Python package to check if a file is binary or text."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+chardet = ">=3.0.2"
+
+[[package]]
 name = "bitstruct"
 version = "8.15.1"
 description = "This module performs conversions between Python values and C bit field structs represented as Python byte strings."
@@ -291,11 +302,11 @@ cffi = ">=1.12"
 
 [package.extras]
 docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
-docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
+docstest = ["pyenchant (>=1.6.11)", "sphinxcontrib-spelling (>=4.0.1)", "twine (>=1.12.0)"]
 pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
 sdist = ["setuptools_rust (>=0.11.4)"]
 ssh = ["bcrypt (>=3.1.5)"]
-test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
+test = ["hypothesis (>=1.11.4,!=3.79.2)", "iso8601", "pretend", "pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests", "pytest-xdist", "pytz"]
 
 [[package]]
 name = "dill"
@@ -325,8 +336,8 @@ optional = false
 python-versions = ">=3.6,<4.0"
 
 [package.extras]
-dnssec = ["cryptography (>=2.6,<37.0)"]
 curio = ["curio (>=1.2,<2.0)", "sniffio (>=1.1,<2.0)"]
+dnssec = ["cryptography (>=2.6,<37.0)"]
 doh = ["h2 (>=4.1.0)", "httpx (>=0.21.1)", "requests (>=2.23.0,<3.0.0)", "requests-toolbelt (>=0.9.1,<0.10.0)"]
 idna = ["idna (>=2.1,<4.0)"]
 trio = ["trio (>=0.14,<0.20)"]
@@ -429,8 +440,8 @@ typing-extensions = {version = ">=3.6.4", markers = "python_version < \"3.8\""}
 zipp = ">=0.5"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pep517", "pyfakefs", "flufl.flake8", "pytest-black (>=0.3.7)", "pytest-mypy", "importlib-resources (>=1.3)"]
+docs = ["jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "sphinx"]
+testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pep517", "pyfakefs", "pytest (>=4.6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy"]
 
 [[package]]
 name = "isort"
@@ -441,10 +452,10 @@ optional = false
 python-versions = ">=3.6.1,<4.0"
 
 [package.extras]
-pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
-requirements_deprecated_finder = ["pipreqs", "pip-api"]
 colors = ["colorama (>=0.4.3,<0.5.0)"]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
 plugins = ["setuptools"]
+requirements_deprecated_finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "itsdangerous"
@@ -646,9 +657,9 @@ pynacl = ">=1.0.1"
 six = "*"
 
 [package.extras]
-all = ["pyasn1 (>=0.1.7)", "pynacl (>=1.0.1)", "bcrypt (>=3.1.3)", "invoke (>=1.3)", "gssapi (>=1.4.1)", "pywin32 (>=2.1.8)"]
-ed25519 = ["pynacl (>=1.0.1)", "bcrypt (>=3.1.3)"]
-gssapi = ["pyasn1 (>=0.1.7)", "gssapi (>=1.4.1)", "pywin32 (>=2.1.8)"]
+all = ["bcrypt (>=3.1.3)", "gssapi (>=1.4.1)", "invoke (>=1.3)", "pyasn1 (>=0.1.7)", "pynacl (>=1.0.1)", "pywin32 (>=2.1.8)"]
+ed25519 = ["bcrypt (>=3.1.3)", "pynacl (>=1.0.1)"]
+gssapi = ["gssapi (>=1.4.1)", "pyasn1 (>=0.1.7)", "pywin32 (>=2.1.8)"]
 invoke = ["invoke (>=1.3)"]
 
 [[package]]
@@ -680,8 +691,8 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx-autodoc-typehints (>=1.12)", "sphinx (>=4)"]
-test = ["appdirs (==1.4.4)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)", "pytest (>=6)"]
+docs = ["furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx (>=4)", "sphinx-autodoc-typehints (>=1.12)"]
+test = ["appdirs (==1.4.4)", "pytest (>=6)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)"]
 
 [[package]]
 name = "prompt-toolkit"
@@ -784,7 +795,7 @@ cffi = ">=1.4.1"
 
 [package.extras]
 docs = ["sphinx (>=1.6.5)", "sphinx-rtd-theme"]
-tests = ["pytest (>=3.2.1,!=3.3.0)", "hypothesis (>=3.27.0)"]
+tests = ["hypothesis (>=3.27.0)", "pytest (>=3.2.1,!=3.3.0)"]
 
 [[package]]
 name = "pyopenssl"
@@ -810,7 +821,7 @@ optional = false
 python-versions = ">=3.6.8"
 
 [package.extras]
-diagrams = ["railroad-diagrams", "jinja2"]
+diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pyperclip"
@@ -834,8 +845,8 @@ pyspnego = "<1.0.0"
 requests = ">=2.9.1,<3.0.0"
 
 [package.extras]
-kerberos = ["gssapi (>=1.5.0,<2.0.0)", "krb5 (<1.0.0)"]
 credssp = ["requests-credssp (>=1.0.0,<2.0.0)"]
+kerberos = ["gssapi (>=1.5.0,<2.0.0)", "krb5 (<1.0.0)"]
 
 [[package]]
 name = "pypykatz"
@@ -1045,8 +1056,8 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
-brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+brotli = ["brotli (>=1.0.9)", "brotlicffi (>=0.8.0)", "brotlipy (>=0.6.0)"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "pyOpenSSL (>=0.14)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
@@ -1112,13 +1123,13 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)"]
+docs = ["jaraco.packaging (>=9)", "rst.linker (>=1.9)", "sphinx"]
+testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy (>=0.9.1)"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.0"
-content-hash = "144b3dec6f5fc026bb9709d3177227507ccb24d1df9b0ab36c84d1c64e990a96"
+content-hash = "9becccac46d3dd68b395429cf57758547942c21fcadeaf7c44c3dc2c74484ad4"
 
 [metadata.files]
 aardwolf = [
@@ -1207,6 +1218,10 @@ bcrypt = [
 beautifulsoup4 = [
     {file = "beautifulsoup4-4.11.1-py3-none-any.whl", hash = "sha256:58d5c3d29f5a36ffeb94f02f0d786cd53014cf9b3b3951d42e0080d8a9498d30"},
     {file = "beautifulsoup4-4.11.1.tar.gz", hash = "sha256:ad9aa55b65ef2808eb405f46cf74df7fcb7044d5cbc26487f96eb2ef2e436693"},
+]
+binaryornot = [
+    {file = "binaryornot-0.4.4-py2.py3-none-any.whl", hash = "sha256:b8b71173c917bddcd2c16070412e369c3ed7f0528926f70cac18a6c97fd563e4"},
+    {file = "binaryornot-0.4.4.tar.gz", hash = "sha256:359501dfc9d40632edc9fac890e19542db1a287bbcfa58175b66658392018061"},
 ]
 bitstruct = [
     {file = "bitstruct-8.15.1.tar.gz", hash = "sha256:6fa6adbfb8f3b8cb68c21b13aa65d23eb2c3ac32419ab926f3fd1fff717a9125"},

