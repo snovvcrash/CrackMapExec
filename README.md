@@ -4,6 +4,7 @@
 
 ```
   ...(snip)...
+  --powershell          execute a PowerShell script treating the first part of the command as the script name
   --dotnetassembly      execute a .NET assembly treating the first part of the command as the assembly name
   --dotnetassembly-names DOTNETASSEMBLY_NAMES
                         a comma-separated string of Namespace,Class,Method to execute
