@@ -10,6 +10,7 @@
                         a comma-separated string of Namespace,Class,Method to execute
   --dotnetassembly-arg-type {string,array}
                         pass the arguments as an array or as a string
+  --donut               when using the --dotnetassembly option, convert the binary to a donut shellcode first (donut should be in PATH as well as mono-devel should be installed)
 ```
 
 :triangular_flag_on_post: This is the public repository of CrackMapExec, for latest version and updates please consider supporting us through https://porchetta.industries/

