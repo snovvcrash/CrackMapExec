@@ -6,10 +6,10 @@
   ...(snip)...
   --powershell          execute a PowerShell script treating the first part of the command as the script name
   --dotnetassembly      execute a .NET assembly treating the first part of the command as the assembly name
-  --dotnetassembly-names DOTNETASSEMBLY_NAMES
-                        a comma-separated string of Namespace,Class,Method to execute
-  --dotnetassembly-arg-type {string,array}
-                        pass the arguments as an array or as a string
+  --dotnetassembly-entrypoint DOTNETASSEMBLY_ENTRYPOINT
+                        a comma-separated string of Namespace,Type,Method to execute
+  --dotnetassembly-entrypoint-argtype {array,string}
+                        pass the arguments to the Entrypoint as an array or as a string
   --donut               when using the --dotnetassembly option, convert the binary to a donut shellcode first (donut should be in PATH as well as mono-devel should be installed)
 ```
 

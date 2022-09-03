@@ -205,8 +205,8 @@ class smb(connection):
                                                              'again with --codec and the corresponding codec')
         cgroup.add_argument('--powershell', action='store_true', help='execute a PowerShell script treating the first part of the command as the script name')
         cgroup.add_argument('--dotnetassembly', action='store_true', help='execute a .NET assembly treating the first part of the command as the assembly name')
-        cgroup.add_argument('--dotnetassembly-names', help='a comma-separated string of Namespace,Class,Method to execute')
-        cgroup.add_argument('--dotnetassembly-arg-type', default='array', choices={'array', 'string'}, help='pass the arguments as an array or as a string')
+        cgroup.add_argument('--dotnetassembly-entrypoint', help='a comma-separated string of Namespace,Type,Method to execute')
+        cgroup.add_argument('--dotnetassembly-entrypoint-argtype', default='array', choices={'array', 'string'}, help='pass the arguments to the Entrypoint as an array or as a string')
         cgroup.add_argument('--donut', action='store_true', help='when using the --dotnetassembly option, convert the binary to a donut shellcode first '
                                                                  '(donut should be in PATH as well as mono-devel should be installed)')
         cgroup.add_argument('--force-ps32', action='store_true', help='force the PowerShell command to run in a 32-bit process')
@@ -660,18 +660,18 @@ class smb(connection):
                 self.args.put_file = (tmp.name, payload_file_remote_path)
                 self.put_file()
 
-            if self.args.dotnetassembly_names:
-                dotnetassembly_names = self.args.dotnetassembly_names.split(',')
-                dotnetassembly_namespace, dotnetassembly_class, dotnetassembly_method = dotnetassembly_names
+            if self.args.dotnetassembly_entrypoint:
+                dotnetassembly_entrypoint = self.args.dotnetassembly_entrypoint.split(',')
+                dotnetassembly_namespace, dotnetassembly_type, dotnetassembly_method = dotnetassembly_entrypoint
             else:
                 dotnetassembly_namespace = payload_file_path.stem
-                dotnetassembly_class = 'Program'
+                dotnetassembly_type = 'Program'
                 dotnetassembly_method = 'Main'
 
-            if self.args.dotnetassembly_arg_type == 'array':
-                dotnetassembly_arg_type = '.Split()'
-            elif self.args.dotnetassembly_arg_type == 'string':
-                dotnetassembly_arg_type = ''
+            if self.args.dotnetassembly_entrypoint_argtype == 'array':
+                dotnetassembly_entrypoint_argtype = '.Split()'
+            elif self.args.dotnetassembly_entrypoint_argtype == 'string':
+                dotnetassembly_entrypoint_argtype = ''
 
             ps_payload_remote_path = f'\\Windows\\Temp\\{gen_random_string(6)}'
             ps_payload = f'''\
@@ -687,7 +687,7 @@ class smb(connection):
                 ps_payload += f'''\
                     $f = [System.Reflection.Assembly]::Load($e)
                     $g = [Reflection.BindingFlags]"Public,NonPublic,Static"
-                    $h = $f.GetType("{dotnetassembly_namespace}.{dotnetassembly_class}", $g)
+                    $h = $f.GetType("{dotnetassembly_namespace}.{dotnetassembly_type}", $g)
                     $i = $h.GetMethod("{dotnetassembly_method}", $g)
                     $j = [System.Console]::Out
                     $k = New-Object System.IO.StringWriter
@@ -700,7 +700,7 @@ class smb(connection):
                         '''
                 else:
                     ps_payload += f'''\
-                        $i.Invoke($null, (, '{payload_args}'{dotnetassembly_arg_type}))
+                        $i.Invoke($null, (, '{payload_args}'{dotnetassembly_entrypoint_argtype}))
                         '''
                 
                 ps_payload += f'''\
