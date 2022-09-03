@@ -620,7 +620,7 @@ class smb(connection):
 
             if self.args.donut:
                 donut_shellcode_path = f'/tmp/{gen_random_string(6)}.bin'
-                donut_cmd = f'donut -i {payload_file_path} -b1 -t -p "{payload_args}" -o {donut_shellcode_path}'
+                donut_cmd = f"donut -i {payload_file_path} -b1 -t -p '{payload_args}' -o {donut_shellcode_path}"
 
                 self.logger.highlight(donut_cmd)
                 os.system(f'{donut_cmd} > /dev/null')
